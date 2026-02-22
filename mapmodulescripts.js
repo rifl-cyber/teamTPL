@@ -128,6 +128,7 @@ onValue(usersLocation, (snapshot) => {
 var markersonchart = []
 var cities = L.layerGroup(markersonchart);
 var showall = true
+var initialLoad = true
 $('#sidepanelhighway1').click(function () { showonly('nh-102'); });
 $('#sidepanelhighway2').click(function () { showonly('nh-2'); });
 $('#sidepanelhighway3').click(function () { showonly('nh-37'); });
@@ -143,18 +144,28 @@ function showonly(para) {
     vehicles.forEach(element => {
         if (Object.values(element).join(' ').toLowerCase().includes(para.toLowerCase())) {
             if (!(element["lat"] === undefined)) {
-                console.log(element["lat"], element["lng"])
-                latlon.push([element["lat"], element["lng"]])
-                var marker = L.marker([element["lat"], element["lng"]], { icon: svgIcon }).addTo(map).
-                    bindPopup("<b>Vehicle Number : </b>" + element["carNumber"].toUpperCase() + '<br>' + "<b>Highway Number : </b>" + element["highwayNumber"] + '<br>' + "<b>Phone  : </b>" + element["phoneNumber"] + '<br>' + "<b>Police Incharge Name : </b>" + element["policeInChargeName"] + '<br>' + "<b>Sector Number : </b>" + element["sectorNumber"] + '<br>' + "<b>Time : </b>" + moment(element["time"]).format('Do MMM YYYY h:mm:ss a') + '<br>' + "<b>Zone : </b>" + element["zoneNumber"] + '<br> <a href="history.html?vehicle=' + element["carNumber"] + '">View History</a>' + element)
+                latlon.push([element["lat"], element["long"]])
+                var marker = L.marker([element["lat"], element["long"]], { icon: svgIcon }).addTo(map).
+                    bindPopup("<b>Name : </b>" + (element["Name"] || "").toUpperCase() + '<br>'
+                        + "<b>Mobile Number : </b>" + (element["MobileNumber"] || "") + '<br>'
+                        + "<b>Police Station  : </b>" + (element["PoliceStation"] || "") + '<br>'
+                        + "<b>Nature of Duty : </b>" + (element["NatureofDuty"] || "") + '<br>'
+                        + "<b>Area Allocated : </b>" + (element["AreaAllocated"] || "") + '<br>'
+                        + "<b>Unit : </b>" + (element["Unit"] || "") + '<br>'
+                        + "<b>Time : </b>" + moment(element["timestamp"]).format('Do MMM YYYY h:mm:ss a') +
+                        '<br> <a href="history.html?vehicle=' + element["id"] + '">View History</a>' +
+                        '<br> <a class="livechat" href="#" data-id="' + element["id"] + '">Live Chat</a>')
                     .openPopup();
                 markersonchart.push(marker);
             }
         }
 
     });
-    var bounds = new L.LatLngBounds(latlon).extend();
-    map.fitBounds(bounds);
+    if (latlon.length > 0) {
+        var bounds = new L.LatLngBounds(latlon);
+        bounds = bounds.pad(0.1);
+        map.fitBounds(bounds);
+    }
 }
 
 function updateLocation() {
@@ -183,9 +194,12 @@ function updateLocation() {
             }
 
         });
-        var bounds = new L.LatLngBounds(latlon);
-        bounds = bounds.pad(0.1); // Adjust the margin here (0.1 represents 10%)
-        map.fitBounds(bounds);
+        if (initialLoad) {
+            var bounds = new L.LatLngBounds(latlon);
+            bounds = bounds.pad(0.1);
+            map.fitBounds(bounds);
+            initialLoad = false;
+        }
     }
 
 }
